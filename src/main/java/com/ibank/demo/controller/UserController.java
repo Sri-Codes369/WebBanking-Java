@@ -48,7 +48,7 @@ public class UserController {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode jsonArray = objectMapper.readTree("[" + String.join(",", user) + "]");
                 
-                // Generate JWT
+                // Generate JWT and store in browser cookie
                 String jwt = Jwts.builder()
                         .setSubject(credential)
                         .claim("user", jsonArray)
