@@ -65,7 +65,7 @@ public class UserController {
                 
                 // Add cookie to the response
                 response.addCookie(cookie);
-                
+                logger.info("Loggin successful");
                 return ResponseEntity.status(HttpStatus.OK).body(cookie);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
