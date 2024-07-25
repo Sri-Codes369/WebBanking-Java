@@ -1,9 +1,8 @@
 package com.ibank.demo.service;
 
 import org.slf4j.Logger;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.SecurityException;
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import com.ibank.demo.controller.UserController;
+import com.ibank.demo.dto.UserDTO;
+import com.ibank.demo.repository.UserRepository;
 
 
 @Service
@@ -35,6 +33,8 @@ public class UserService {
     @Value("${spring.datasource.password}")
     private String dbPassword;
 
+    @Autowired
+    private UserRepository userRepository;
 
 
     public List<String> login(String credential, String password) throws SQLException {
@@ -50,10 +50,6 @@ public class UserService {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     String jsonString = rs.getString(1);
-//                    if(jsonString == null) {
-//                    	 logger.info(jsonString);
-//                    }
-//                   
                     if (jsonString != null && !jsonString.isEmpty()) {
                     	logger.info(jsonString);
                         user.add(jsonString);
@@ -63,5 +59,23 @@ public class UserService {
         
         }
         return user;
+    };
+
+    @Transactional
+    public int registerUser(UserDTO userDTO) {
+   
+        
+      return userRepository.spRegisterUser(
+            userDTO.getUserName(),
+            userDTO.getPassword(),
+            userDTO.getFirstName(),
+            userDTO.getLastName(),
+            userDTO.getEmail(),
+            userDTO.getPhone(),
+            userDTO.getAddress()
+         
+        );
+
     }
-}
+
+};
