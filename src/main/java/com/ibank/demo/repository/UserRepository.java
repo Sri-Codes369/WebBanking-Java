@@ -5,7 +5,8 @@ import org.springframework.data.repository.query.Param;
 
 import com.ibank.demo.entity.User;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+
+public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Procedure(procedureName = "spRegisterUser")
     Integer spRegisterUser(
@@ -14,8 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         @Param("p_FirstName") String firstName,
         @Param("p_LastName") String lastName,
         @Param("p_Email") String email,
-        @Param("p_Phone") String phone,
-        @Param("p_Address") String address
+        @Param("p_Phone") String phone
         
     );
 }

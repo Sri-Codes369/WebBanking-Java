@@ -20,6 +20,7 @@ import com.ibank.demo.dto.UserDTO;
 import com.ibank.demo.service.UserService;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,7 @@ public class UserController {
                 JsonNode jsonArray = objectMapper.readTree("[" + String.join(",", user) + "]");
 
                 // Generate JWT and store in browser cookie
+                @SuppressWarnings("deprecation")
                 String jwt = Jwts.builder()
                         .setSubject(credential)
                         .claim("user", jsonArray)
@@ -62,11 +64,9 @@ public class UserController {
                 cookie.setHttpOnly(false); // Change to false for debugging only
                 cookie.setMaxAge(3600); // 1 hour expiration
                 cookie.setPath("/"); // Available for the entire application
-                cookie.setSecure(false); // Set to true if using HTTPS
-                cookie.setDomain(""); // Default to current domain
-                cookie.setAttribute("SameSite", "Lax"); // or "Strict" or "None" based on your needs
+                cookie.setSecure(false); // Set to true if using HTTPS           
                 response.addCookie(cookie);
-                logger.info("Login successful");
+               
                 
                 return ResponseEntity.ok("Login successful");
             } else {
@@ -80,23 +80,43 @@ public class UserController {
     };
 
 
-    @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody UserDTO userDTO) {
-        try {
-          int resultCode  =  userService.registerUser(userDTO);
-        
-          switch (resultCode) {
+   @PostMapping("/register")
+public ResponseEntity<Map<String, Object>> registerUser(@RequestBody UserDTO userDTO) {
+    Map<String, Object> response = new HashMap<>();
+    try {
+        int resultCode = userService.registerUser(userDTO);
+
+        switch (resultCode) {
             case -1:
-                return ResponseEntity.status(200).body(resultCode+"");
+                response.put("ResponseCode", -1);
+                response.put("Response", "User Name Already Exists...!");
+                return ResponseEntity.status(HttpStatus.OK).body(response);
+
             case -2:
-            return ResponseEntity.status(200).body(resultCode+"");
+                response.put("ResponseCode", -2);
+                response.put("Response", "Email Already Exists...!");
+                return ResponseEntity.status(HttpStatus.OK).body(response);
+
+            case -3:
+                response.put("ResponseCode", -3);
+                response.put("Response", "Phone Number Already Exists...!");
+                return ResponseEntity.status(HttpStatus.OK).body(response);
+
             case 0:
-            return ResponseEntity.status(200).body(resultCode+"");
+                response.put("ResponseCode", 0);
+                response.put("Response", "User Registered Successfully");
+                return ResponseEntity.status(HttpStatus.OK).body(response);
+
             default:
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error occurred");
+                response.put("ResponseCode", -99);
+                response.put("Response", "Unexpected error occurred");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error registering user: " + e.getLocalizedMessage());
-        }
-    };
+    } catch (Exception e) {
+        response.put("ResponseCode", -500);
+        response.put("Response", "Error registering user: " + e.getLocalizedMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+}
+
 }

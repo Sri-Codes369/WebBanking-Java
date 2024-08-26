@@ -7,8 +7,6 @@ public class UserDTO {
     private String lastName;
     private String email;
     private String phone;
-    private String address; // Changed from byte[] to String
-
     // Getters and Setters
 
     public String getUserName() {
@@ -59,11 +57,5 @@ public class UserDTO {
         this.phone = phone;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
+   
 }

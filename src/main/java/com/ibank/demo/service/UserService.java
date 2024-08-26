@@ -24,6 +24,9 @@ public class UserService {
 	@Value("${jwt.secret}")
     private String secretKey;
 
+    @Value("${AES.secret}")
+    private String AES_SecretKey;
+
     @Value("${spring.datasource.url}")
     private String dbUrl;
 
@@ -41,9 +44,9 @@ public class UserService {
         List<String> user = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
              CallableStatement stmt = connection.prepareCall("{call spUserLogin(?, ?)}")) {
-
+                String encryptedPassword = AESUtil.encrypt(password, AES_SecretKey);
             stmt.setString(1, credential);
-            stmt.setString(2, password);
+            stmt.setString(2, encryptedPassword );
            logger.info(credential);
            logger.info(password);
             logger.info(stmt+"stmt");
@@ -57,25 +60,39 @@ public class UserService {
                 }
             }
         
+        }catch (Exception e) {
+            logger.error("Error encrypting data", e);
+            throw new RuntimeException("Error encrypting data", e);
         }
         return user;
     };
 
     @Transactional
-    public int registerUser(UserDTO userDTO) {
-   
-        
-      return userRepository.spRegisterUser(
-            userDTO.getUserName(),
-            userDTO.getPassword(),
-            userDTO.getFirstName(),
-            userDTO.getLastName(),
-            userDTO.getEmail(),
-            userDTO.getPhone(),
-            userDTO.getAddress()
-         
-        );
+    public Integer registerUser(UserDTO userDTO) {
+        try {
+            // Encrypt the user details using the AES secret key
+           userDTO.getUserName();
+           String encryptedPassword = AESUtil.encrypt(userDTO.getPassword(), AES_SecretKey);
+             userDTO.getFirstName();
+             userDTO.getLastName();
+             userDTO.getEmail();
+             userDTO.getPhone();
 
+             logger.info(encryptedPassword);
+
+            // Call the stored procedure with encrypted values
+            return userRepository.spRegisterUser(
+                userDTO.getUserName(),
+                    encryptedPassword,
+                    userDTO.getFirstName(),
+             userDTO.getLastName(),
+             userDTO.getEmail(),
+             userDTO.getPhone()
+            );
+        } catch (Exception e) {
+            logger.error("Error encrypting data", e);
+            throw new RuntimeException("Error encrypting data", e);
+        }
     }
 
 };
