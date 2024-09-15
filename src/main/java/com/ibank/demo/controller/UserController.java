@@ -1,7 +1,9 @@
 package com.ibank.demo.controller;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.slf4j.Logger;
@@ -12,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,14 +58,14 @@ public class UserController {
                         .setSubject(credential)
                         .claim("user", jsonArray)
                         .setIssuedAt(new Date())
-                        .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // 1 hour expiration
+                        .setExpiration(new Date(System.currentTimeMillis() + 600000)) // 1 hour expiration
                         .signWith(SignatureAlgorithm.HS256, secretKey)
                         .compact();
 
                 // Create a cookie
                 Cookie cookie = new Cookie("Auth_Token", jwt);
                 cookie.setHttpOnly(false); // Change to false for debugging only
-                cookie.setMaxAge(3600); // 1 hour expiration
+                cookie.setMaxAge(600); // 1 hour expiration
                 cookie.setPath("/"); // Available for the entire application
                 cookie.setSecure(false); // Set to true if using HTTPS           
                 response.addCookie(cookie);
@@ -78,6 +81,68 @@ public class UserController {
                     .body("{\"error\":\"" + e.getMessage() + "\"}");
         }
     };
+
+
+    @SuppressWarnings("deprecation")
+    @PostMapping("/extend-token")
+public ResponseEntity<?> extendToken(HttpServletRequest request, HttpServletResponse response) {
+    try {
+        // Retrieve the cookies from the request
+        Cookie[] cookies = request.getCookies();
+        String token = null;
+
+        // Find the 'Auth_Token' cookie
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("Auth_Token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("{\"error\":\"No token provided\"}");
+        }
+
+        // Validate and parse the existing token
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+
+        // Check if the token is near expiration (e.g., within 1 minute)
+        long expirationTime = claims.getExpiration().getTime();
+        long currentTime = System.currentTimeMillis();
+
+        if (expirationTime - currentTime > 60000) {
+            // Token is not yet close to expiration
+            return ResponseEntity.ok("Token does not need to be refreshed yet");
+        }
+
+        // Re-issue the token with the same claims and a new 10-minute expiration
+        String newToken = Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 600000)) // Extend for 10 minutes
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
+
+        // Set the new token in the cookie
+        Cookie newAuthCookie = new Cookie("Auth_Token", newToken);
+        newAuthCookie.setHttpOnly(true);
+        newAuthCookie.setMaxAge(600); // 10 minutes
+        newAuthCookie.setPath("/");
+        response.addCookie(newAuthCookie);
+
+        return ResponseEntity.ok("Token extended");
+
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("{\"error\":\"Invalid token\"}");
+    }
+}
 
 
    @PostMapping("/register")
