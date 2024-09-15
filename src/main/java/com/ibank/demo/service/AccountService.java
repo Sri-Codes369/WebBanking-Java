@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.ibank.demo.dto.AccCreationDTO;
 import com.ibank.demo.dto.AccountDetailsDTO;
+import com.ibank.demo.dto.AllAccountDetailsDTO;
 
 @Service
 public class AccountService {
@@ -64,5 +65,11 @@ public class AccountService {
     public List<AccountDetailsDTO> getUserAccountDetails(int userId) {
         String sql = "{call SP_GetUserAccountDetails(?)}";
         return jdbcTemplate.query(sql, new Object[]{userId}, new BeanPropertyRowMapper<>(AccountDetailsDTO.class));
+    }
+
+    @SuppressWarnings("deprecation")
+    public List<AllAccountDetailsDTO> getAllAccountDetails(int queryType, int accountId) {
+        String sql = "{call SP_GetAccountDetails(?,?)}";
+        return jdbcTemplate.query(sql, new Object[]{queryType, accountId}, new BeanPropertyRowMapper<>(AllAccountDetailsDTO.class));
     }
 }

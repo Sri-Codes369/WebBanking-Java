@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ibank.demo.dto.AccCreationDTO;
 import com.ibank.demo.dto.AccountDetailsDTO;
+import com.ibank.demo.dto.AllAccountDetailsDTO;
 import com.ibank.demo.service.AccountService;
 
 @RestController
@@ -42,6 +43,12 @@ public class AccountControler {
     @GetMapping("/account-details")
     public ResponseEntity<List<AccountDetailsDTO>> getAccountDetails(@RequestParam int userId) {
         List<AccountDetailsDTO> accountDetails = accountKycService.getUserAccountDetails(userId);
+        return ResponseEntity.ok(accountDetails);
+    }
+
+    @GetMapping("/allAccount-details")
+    public ResponseEntity<List<AllAccountDetailsDTO>> getAllAccountDetails(@RequestParam int queryType,@RequestParam int accountId) {
+        List<AllAccountDetailsDTO> accountDetails = accountKycService.getAllAccountDetails(queryType,accountId);
         return ResponseEntity.ok(accountDetails);
     }
 }
