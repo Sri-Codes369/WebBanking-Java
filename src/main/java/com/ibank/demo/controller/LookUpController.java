@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ibank.demo.dto.AccountStatusDTO;
 import com.ibank.demo.dto.AccountTypeDTO;
 import com.ibank.demo.dto.KYCOptionDTO;
 import com.ibank.demo.service.LookUpService;
@@ -43,6 +44,21 @@ public class LookUpController {
         Map<String, Object> response = new HashMap<>();
         try {
             List<KYCOptionDTO> kycOptions = lookupService.getAllKYCOptions();
+            return ResponseEntity.status(HttpStatus.OK).body(kycOptions);
+        } catch (Exception e) {
+            // Log the exception
+            e.printStackTrace();
+            response.put("ResponseCode", -500);
+            response.put("Response", "Error registering user: " + e.getLocalizedMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @GetMapping("/AccStatus-options")
+    public ResponseEntity<?> getAccStatus() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<AccountStatusDTO> kycOptions = lookupService.getACCStatus();
             return ResponseEntity.status(HttpStatus.OK).body(kycOptions);
         } catch (Exception e) {
             // Log the exception

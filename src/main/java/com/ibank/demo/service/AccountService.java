@@ -14,6 +14,8 @@ import java.util.Map;
 import com.ibank.demo.dto.AccCreationDTO;
 import com.ibank.demo.dto.AccountDetailsDTO;
 import com.ibank.demo.dto.AllAccountDetailsDTO;
+import com.ibank.demo.dto.ApiResponseDTO;
+import com.ibank.demo.dto.UpdateAccountStatusDTO;
 
 @Service
 public class AccountService {
@@ -71,5 +73,29 @@ public class AccountService {
     public List<AllAccountDetailsDTO> getAllAccountDetails(int queryType, int accountId) {
         String sql = "{call SP_GetAccountDetails(?,?)}";
         return jdbcTemplate.query(sql, new Object[]{queryType, accountId}, new BeanPropertyRowMapper<>(AllAccountDetailsDTO.class));
+    }
+
+    public ApiResponseDTO updateAccountStatus(UpdateAccountStatusDTO updateAccountStatusDTO) {
+        try {
+            // Call the stored procedure
+            jdbcTemplate.execute((Connection connection) -> {
+                try (CallableStatement callableStatement = connection.prepareCall("{call SP_UpdateAccountStatus(?, ?, ?)}")) {
+                    callableStatement.setInt(1, updateAccountStatusDTO.getAccountId());
+                    callableStatement.setInt(2, updateAccountStatusDTO.getNewAccountStatus());
+                    callableStatement.setString(3, updateAccountStatusDTO.getNewRemarks());
+
+                    // Execute the stored procedure
+                    callableStatement.execute();
+                }
+                return null;
+            });
+
+            // Return success response
+            return new ApiResponseDTO("Account status updated successfully.", true);
+
+        } catch (Exception e) {
+            // Handle error and return failure response
+            return new ApiResponseDTO("Failed to update account status: " + e.getMessage(), false);
+        }
     }
 }
