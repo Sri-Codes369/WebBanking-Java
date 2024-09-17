@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
@@ -13,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.ibank.demo.controller.UserController;
 import com.ibank.demo.dto.UserDTO;
+import com.ibank.demo.dto.UserFetchDTO;
 import com.ibank.demo.repository.UserRepository;
 
 
@@ -38,6 +41,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
 
     public List<String> login(String credential, String password) throws SQLException {
@@ -93,6 +99,12 @@ public class UserService {
             logger.error("Error encrypting data", e);
             throw new RuntimeException("Error encrypting data", e);
         }
+    }
+
+
+      public List<UserFetchDTO> getAllUsers() {
+        String sql = "{CALL SP_GetAllUsers()}";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(UserFetchDTO.class));
     }
 
 };

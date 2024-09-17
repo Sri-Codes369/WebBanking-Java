@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibank.demo.dto.UserDTO;
+import com.ibank.demo.dto.UserFetchDTO;
 import com.ibank.demo.service.UserService;
 
 import java.util.Date;
@@ -184,4 +186,10 @@ public ResponseEntity<Map<String, Object>> registerUser(@RequestBody UserDTO use
     }
 }
 
+
+ @GetMapping("/users")
+    public ResponseEntity<List<UserFetchDTO>> getAllUsers() {
+        List<UserFetchDTO> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
 }
